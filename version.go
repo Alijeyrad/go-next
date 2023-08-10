@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
 )
@@ -11,4 +12,13 @@ func VersionFunc(cmd *Command, args []string) {
 	// version command logic
 	fmt.Fprintln(os.Stderr, version)
 	os.Exit(0)
+}
+
+func VersionCommand() *Command {
+	cmd := &Command{
+		flags:   flag.NewFlagSet("version", flag.ExitOnError),
+		Execute: VersionFunc,
+	}
+
+	return cmd
 }

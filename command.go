@@ -18,12 +18,3 @@ func (c *Command) Called() bool {
 func (c *Command) Run() {
 	c.Execute(c, c.flags.Args())
 }
-
-func VersionCommand() *Command {
-	cmd := &Command{
-		flags:   flag.NewFlagSet("version", flag.ExitOnError),
-		Execute: VersionFunc,
-	}
-
-	return cmd
-}
