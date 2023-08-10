@@ -32,6 +32,8 @@ var (
 
 	srcGlobalsPathfilepath = filepath.Join("src", "styles", "globals.css")
 	srcHomeModuleCssPath   = filepath.Join("src", "styles", "Home.module.css")
+
+	pagesIndexTsxPath = filepath.Join("src", "pages", "index.tsx")
 )
 
 type PackageJSON struct {
@@ -62,6 +64,11 @@ func StartFunc(cmd *Command, args []string) {
 		if err != nil {
 			fmt.Println("Cleaning src folder returned some errors...")
 		}
+	}
+
+	err = createSrcFolders()
+	if err != nil {
+		fmt.Println("Creating src folder structure returned some errors...")
 	}
 
 	os.Exit(0)
@@ -106,6 +113,7 @@ func readPackageJSON() error {
 func cleanPublicFolder() error {
 	// Deleting files inside public folder
 	fmt.Println("Cleaning public folder ...")
+	var err error
 
 	err = os.Remove(publicNextSvg)
 	if err != nil {
@@ -160,6 +168,11 @@ func cleanSrcFolderTailwind() error {
 		fmt.Println("Error writing to file:", err)
 	}
 
+	err = cleanPagesIndexFile()
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+	}
+
 	return err
 }
 
@@ -174,6 +187,57 @@ func cleanSrcFolderNotTailwind() error {
 	}
 
 	err = os.WriteFile(srcGlobalsPathfilepath, []byte(""), os.ModePerm)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+	}
+
+	err = cleanPagesIndexFile()
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+	}
+
+	return err
+}
+
+func createSrcFolders() error {
+	fmt.Println("Creating necessary files and folders...")
+	var filePath string
+	var err error
+	folders := []string{
+		"components",
+		"containers",
+		"configs",
+		"hooks",
+		"locale",
+		"reducers",
+		"store",
+		"services",
+		"svg",
+		"types",
+		"utils",
+	}
+
+	for _, folderName := range folders {
+		filePath = filepath.Join("src", folderName)
+		err = os.Mkdir(filePath, 0755)
+		if err != nil {
+			fmt.Println("Error creating folder:", err)
+		}
+	}
+
+	return err
+}
+
+func cleanPagesIndexFile() error {
+	newContent := `import React from 'react'
+
+	export default function Home() {
+	  return (
+		<></>
+	  )
+	}
+	`
+	err := os.WriteFile(pagesIndexTsxPath, []byte(newContent), os.ModePerm)
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
 	}
