@@ -23,7 +23,7 @@ var (
 
 	// file paths
 	packageJSONPath    = "package.json"
-	tailwindConfigPath = "tailwind.config.js"
+	tailwindConfigPath = "tailwind.config.ts"
 
 	publicNextSvg     = "public/next.svg"
 	publicVercelSvg   = "public/vercel.svg"
@@ -152,17 +152,16 @@ func cleanSrcFolderTailwind() error {
 	}
 
 	newContent = `/** @type {import('tailwindcss').Config} */
-	module.exports = {
-		content: [
+module.exports = {
+	content: [
 		"./src/**/*.{js,ts,jsx,tsx,mdx}"
-		],
-		theme: {
-		extend: {
-		},
-		},
-		plugins: [],
-	}
-	`
+	],
+	theme: {
+		extend: {},
+	},
+	plugins: [],
+}
+`
 	err = os.WriteFile(tailwindConfigPath, []byte(newContent), os.ModePerm)
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
