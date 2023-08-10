@@ -39,7 +39,11 @@ func main() {
 		usageAndExit(fmt.Sprintf("go-next: '%s' is not a go-next command.\n", red(os.Args[1])))
 	}
 
-	cmd.Init(os.Args)
+	if len(os.Args) < 2 {
+		cmd.Init(os.Args)
+	} else {
+		cmd.Init(os.Args[2:])
+	}
 	if cmd.Called() {
 		cmd.Run()
 	}

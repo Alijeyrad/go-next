@@ -19,18 +19,9 @@ func (c *Command) Run() {
 	c.Execute(c, c.flags.Args())
 }
 
-func StartCommand() *Command {
-	cmd := &Command{
-		flags:   flag.NewFlagSet("start", flag.ExitOnError),
-		Execute: StartFunc,
-	}
-
-	return cmd
-}
-
 func VersionCommand() *Command {
 	cmd := &Command{
-		flags:   flag.NewFlagSet("start", flag.ExitOnError),
+		flags:   flag.NewFlagSet("version", flag.ExitOnError),
 		Execute: VersionFunc,
 	}
 
