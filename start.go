@@ -19,6 +19,19 @@ Options:
 
 var (
 	tailwind bool = false
+	err      error
+
+	// file paths
+	packageJSONPath    = "package.json"
+	tailwindConfigPath = "tailwind.config.js"
+
+	publicNextSvg     = "public/next.svg"
+	publicVercelSvg   = "public/vercel.svg"
+	publicFontsFolder = "public/fonts"
+	publicImgFolder   = "public/img"
+
+	srcGlobalsPathfilepath = filepath.Join("src", "styles", "globals.css")
+	srcHomeModuleCssPath   = filepath.Join("src", "styles", "Home.module.css")
 )
 
 type PackageJSON struct {
@@ -29,93 +42,28 @@ type PackageJSON struct {
 func StartFunc(cmd *Command, args []string) {
 	// start command logic
 
-	// read package json to get info on the next.js app
-	jsonData, err := os.ReadFile("package.json")
+	err = readPackageJSON()
 	if err != nil {
-		fmt.Println("Error reading package.json:", err)
-		return
+		fmt.Println("Parsing package.json returned some errors...")
 	}
 
-	// parse json
-	var packageInfo PackageJSON
-	err = json.Unmarshal(jsonData, &packageInfo)
+	err = cleanPublicFolder()
 	if err != nil {
-		fmt.Println("Error parsing package.json:", err)
-		return
+		fmt.Println("Cleaning public folder returned some errors...")
 	}
 
-	// Print the Next.js app info
-	fmt.Printf("Next.js app found: %s v%s\n", packageInfo.Name, packageInfo.Version)
-
-	// Deleting files inside public folder
-	fmt.Println("Cleaning public folder ...")
-
-	err = os.Remove("public/next.svg")
-	if err != nil {
-		fmt.Println("Error, deleting files:", err)
-	}
-	err = os.Remove("public/vercel.svg")
-	if err != nil {
-		fmt.Println("Error, deleting files:", err)
-	}
-
-	err = os.Mkdir("public/fonts", 0755)
-	if err != nil {
-		fmt.Println("Error creating folder:", err)
-	}
-	err = os.Mkdir("public/img", 0755)
-	if err != nil {
-		fmt.Println("Error creating folder:", err)
-	}
-
-	// cleaning src folder
-	fmt.Println("Cleaning src folder ...")
 	if tailwind {
-		// project has tailwind installed
-		filePath := filepath.Join("src", "styles", "globals.css")
-		newContent := `@tailwind base;
-		@tailwind components;
-		@tailwind utilities;
-		`
-		err = os.WriteFile(filePath, []byte(newContent), os.ModePerm)
+		err = cleanSrcFolderTailwind()
 		if err != nil {
-			fmt.Println("Error writing to file:", err)
-		}
-
-		filePath = "tailwind.config.js"
-		newContent = `/** @type {import('tailwindcss').Config} */
-		module.exports = {
-		  content: [
-			"./src/**/*.{js,ts,jsx,tsx,mdx}"
-		  ],
-		  theme: {
-			extend: {
-			},
-		  },
-		  plugins: [],
-		}
-		`
-		err = os.WriteFile(filePath, []byte(newContent), os.ModePerm)
-		if err != nil {
-			fmt.Println("Error writing to file:", err)
+			fmt.Println("Cleaning src folder returned some errors...")
 		}
 	} else {
-		// project doesn't has tailwind installed
-		filePath := filepath.Join("src", "styles", "Home.module.css")
-		err = os.Remove(filePath)
+		err = cleanSrcFolderNotTailwind()
 		if err != nil {
-			fmt.Println("Error, deleting files:", err)
-		}
-
-		filePath = filepath.Join("src", "styles", "globals.css")
-		newContent := ""
-		err = os.WriteFile(filePath, []byte(newContent), os.ModePerm)
-		if err != nil {
-			fmt.Println("Error writing to file:", err)
+			fmt.Println("Cleaning src folder returned some errors...")
 		}
 	}
 
-	fmt.Fprintln(os.Stderr, "Start Command :)")
 	os.Exit(0)
 }
 
@@ -131,4 +79,104 @@ func StartCommand() *Command {
 	}
 
 	return cmd
+}
+
+func readPackageJSON() error {
+	// read package json to get info on the next.js app
+	// and print app name and version
+
+	jsonData, err := os.ReadFile(packageJSONPath)
+	if err != nil {
+		fmt.Println("Error reading package.json:", err)
+	}
+
+	// parse json
+	var packageInfo PackageJSON
+	err = json.Unmarshal(jsonData, &packageInfo)
+	if err != nil {
+		fmt.Println("Error parsing package.json:", err)
+	}
+
+	// Print the Next.js app info
+	fmt.Printf("Next.js app found: %s v%s\n", packageInfo.Name, packageInfo.Version)
+
+	return err
+}
+
+func cleanPublicFolder() error {
+	// Deleting files inside public folder
+	fmt.Println("Cleaning public folder ...")
+
+	err = os.Remove(publicNextSvg)
+	if err != nil {
+		fmt.Println("Error, deleting files:", err)
+	}
+	err = os.Remove(publicVercelSvg)
+	if err != nil {
+		fmt.Println("Error, deleting files:", err)
+	}
+
+	// creating fonts and img folders
+	err = os.Mkdir(publicFontsFolder, 0755)
+	if err != nil {
+		fmt.Println("Error creating folder:", err)
+	}
+	err = os.Mkdir(publicImgFolder, 0755)
+	if err != nil {
+		fmt.Println("Error creating folder:", err)
+	}
+
+	return err
+}
+
+func cleanSrcFolderTailwind() error {
+	fmt.Println("Cleaning src folder ...")
+	var err error
+
+	// project has tailwind installed
+	newContent := `@tailwind base;
+	@tailwind components;
+	@tailwind utilities;
+	`
+	err = os.WriteFile(srcGlobalsPathfilepath, []byte(newContent), os.ModePerm)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+	}
+
+	newContent = `/** @type {import('tailwindcss').Config} */
+	module.exports = {
+		content: [
+		"./src/**/*.{js,ts,jsx,tsx,mdx}"
+		],
+		theme: {
+		extend: {
+		},
+		},
+		plugins: [],
+	}
+	`
+	err = os.WriteFile(tailwindConfigPath, []byte(newContent), os.ModePerm)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+	}
+
+	return err
+}
+
+func cleanSrcFolderNotTailwind() error {
+	fmt.Println("Cleaning src folder ...")
+	var err error
+
+	// project doesn't has tailwind installed
+	err = os.Remove(srcHomeModuleCssPath)
+	if err != nil {
+		fmt.Println("Error, deleting files:", err)
+	}
+
+	err = os.WriteFile(srcGlobalsPathfilepath, []byte(""), os.ModePerm)
+	if err != nil {
+		fmt.Println("Error writing to file:", err)
+	}
+
+	return err
 }
