@@ -15,7 +15,10 @@ A simple tool to generate files and folders in a Next.js project.
 Options:
 
 Commands:
-start	start a new folder structure and clean default files
+version   -> Show program version
+start	  -> Start a new folder structure and clean default files
+component [component name] -> Create new component
+container [container name] -> Create new container
 `
 
 func main() {
@@ -27,16 +30,23 @@ func main() {
 		usageAndExit("Specify a command.")
 	}
 
-	var cmd *Command = StartCommand()
+	var cmd *Command
 
 	switch os.Args[1] {
 	case "start":
 		cmd = StartCommand()
+	case "component":
+		cmd = ComponentCommand()
+	case "container":
+		cmd = ContainerCommand()
 	case "version":
 		cmd = VersionCommand()
 	default:
 		red := color.New(color.FgRed).SprintFunc()
-		usageAndExit(fmt.Sprintf("go-next: '%s' is not a go-next command.\n", red(os.Args[1])))
+		flag.Usage = func() {
+			fmt.Println(usage)
+		}
+		usageAndExit(fmt.Sprintf("\ngo-next: '%s' is not a go-next command.\n", red(os.Args[1])))
 	}
 
 	if len(os.Args) < 2 {

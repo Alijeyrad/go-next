@@ -10,7 +10,7 @@ import (
 
 var startUsage = `Clean files and create basic folder structure for a new project.
 
-Usage: go-next version [options]
+Usage: go-next start [options]
 
 Options:
   --tailwind  If true, project has installed tailwind (effects style folder cleanup).
@@ -47,28 +47,33 @@ func StartFunc(cmd *Command, args []string) {
 	err = readPackageJSON()
 	if err != nil {
 		fmt.Println("Parsing package.json returned some errors...")
+		fmt.Println(err)
 	}
 
 	err = cleanPublicFolder()
 	if err != nil {
 		fmt.Println("Cleaning public folder returned some errors...")
+		fmt.Println(err)
 	}
 
 	if tailwind {
 		err = cleanSrcFolderTailwind()
 		if err != nil {
 			fmt.Println("Cleaning src folder returned some errors...")
+			fmt.Println(err)
 		}
 	} else {
 		err = cleanSrcFolderNotTailwind()
 		if err != nil {
 			fmt.Println("Cleaning src folder returned some errors...")
+			fmt.Println(err)
 		}
 	}
 
 	err = createSrcFolders()
 	if err != nil {
 		fmt.Println("Creating src folder structure returned some errors...")
+		fmt.Println(err)
 	}
 
 	os.Exit(0)
@@ -95,6 +100,7 @@ func readPackageJSON() error {
 	jsonData, err := os.ReadFile(packageJSONPath)
 	if err != nil {
 		fmt.Println("Error reading package.json:", err)
+		os.Exit(0)
 	}
 
 	// parse json
@@ -102,6 +108,7 @@ func readPackageJSON() error {
 	err = json.Unmarshal(jsonData, &packageInfo)
 	if err != nil {
 		fmt.Println("Error parsing package.json:", err)
+		os.Exit(0)
 	}
 
 	// Print the Next.js app info
@@ -143,9 +150,9 @@ func cleanSrcFolderTailwind() error {
 
 	// project has tailwind installed
 	newContent := `@tailwind base;
-	@tailwind components;
-	@tailwind utilities;
-	`
+@tailwind components;
+@tailwind utilities;
+`
 	err = os.WriteFile(srcGlobalsPathfilepath, []byte(newContent), os.ModePerm)
 	if err != nil {
 		fmt.Println("Error writing to file:", err)
